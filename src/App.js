@@ -16,6 +16,8 @@ import TextField from '@material-ui/core/TextField';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import Fab from '@material-ui/core/Fab';
 import SaveIcon from '@material-ui/icons/Save';
+import CloseIcon from '@material-ui/icons/Close';
+import Snackbar from '@material-ui/core/Snackbar';
 
 import * as firebase from "firebase/app";
 import '@firebase/firestore'
@@ -103,7 +105,6 @@ const styles = {
 
 function Barra(props) {
   const classes = useStyles();
-  console.log(props.schermataMaestro);
   return (
     <AppBar position="fixed" color="transparent" elevation={0}>
       <Toolbar>
@@ -128,7 +129,11 @@ state = {
   isSignedIn: false, // Local signed-in state.
   numeroInput: 1,
   erroreInputSocieta: false,
-  nomeSocieta:""
+  nomeSocieta:"",
+  listaMosse:[],
+  listaTempi:[],
+  snackOpen: false,
+  snackMessage: "",
 };
 
 // Configure FirebaseUI.
@@ -156,18 +161,60 @@ componentWillUnmount() {
   this.unregisterAuthObserver();
 }
 
+handleClose = (event, reason) => {
+  if (reason === 'clickaway') {
+    return;
+  }
+
+  this.setState({snackOpen:false})
+};
+
+aggiungiMossa = (key, text) => {
+  try{
+    if(this.state.listaMosse.map((v) => v.chiave).includes(key)){
+      let cambio = this.state.listaMosse;
+      cambio[key].testo = text;
+      this.setState({listaMosse: cambio});
+    } else {
+      this.setState({listaMosse: this.state.listaMosse.concat({chiave: key, testo: text})})
+    }
+   } catch (err) {
+    this.setState({listaMosse: this.state.listaMosse.concat({chiave: key, testo: text})})
+  }
+}
+
+aggiungiTempo = (key, text) => {
+  try{
+    if(this.state.listaTempi.map((v) => v.chiave).includes(key)){
+      let cambio = this.state.listaTempi;
+      cambio[key].testo = text;
+      this.setState({listaTempi: cambio});
+    } else {
+      this.setState({listaTempi: this.state.listaTempi.concat({chiave: key, testo: text})})
+    }
+   } catch (err) {
+    this.setState({listaTempi: this.state.listaTempi.concat({chiave: key, testo: text})})
+  }
+}
+
 salva = () => {
-  if(this.state.nomeSocieta == ""){
+  if(this.state.nomeSocieta === ""){
     this.setState({erroreInputSocieta:true})
     return
   } else {
     this.setState({erroreInputSocieta:false})
   }
+  if(this.state.listaMosse.length !== this.state.listaTempi.length){
+    this.setState({snackOpen:true, snackMessage:"Mancano delle mosse o dei tempi."})
+    return
+  }
+  this.setState({snackOpen:true, snackMessage:"Salvato."})
+  console.log(this.state.listaMosse)
+  console.log(this.state.listaTempi)
   return
 }
 
 render() {
-  console.log(this.props.classes)
   if (!this.state.isSignedIn) {
     return (
       <div className="App">
@@ -213,7 +260,7 @@ render() {
               alignItems="center"
               >
                 <Grid item xs={6} justify="center" alignItems="center">
-                  {Array(this.state.numeroInput).fill(1).map(() =>
+                  {Array(this.state.numeroInput).fill(1).map((x, y) => x + y - 1).map((chiave) =>
                     (<Grid
                       container
                       direction="row"
@@ -222,10 +269,22 @@ render() {
                       spacing={1}
                     >
                       <Grid item xs={6} justify="center" alignItems="center">
-                        <TextField id="mossa" label="Mossa" InputLabelProps={{color:"primary"}} InputProps={{  className: this.props.classes.formMosse }}/>
+                        <TextField 
+                        id="mossa" 
+                        label="Mossa" 
+                        onChange={(e) => this.aggiungiMossa(chiave, e.target.value)}
+                        InputLabelProps={{color:"primary"}} 
+                        InputProps={{  className: this.props.classes.formMosse }}
+                        />
                       </Grid>
                       <Grid item xs={6} justify="center" alignItems="center">
-                        <TextField id="tempo" label="Tempo" InputLabelProps={this.props.classes.InputLabelProps} InputProps={{  className: this.props.classes.formMosse }}/>
+                        <TextField 
+                        id="tempo" 
+                        label="Tempo" 
+                        onChange={(e) => this.aggiungiTempo(chiave, e.target.value)}
+                        InputLabelProps={this.props.classes.InputLabelProps} 
+                        InputProps={{  className: this.props.classes.formMosse }}
+                        />
                       </Grid>
                     </Grid>)
                   )}
@@ -239,6 +298,23 @@ render() {
             </Grid>
           </Grid>
         </div>
+        <Snackbar
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          open={this.state.snackOpen}
+          autoHideDuration={10000}
+          onClose={this.handleClose}
+          message={this.state.snackMessage}
+          action={
+            <React.Fragment>
+              <IconButton size="small" aria-label="close" color="inherit" onClick={this.handleClose}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </React.Fragment>
+          }
+        />
       </div>
     )
   }
