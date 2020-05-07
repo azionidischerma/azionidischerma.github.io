@@ -133,84 +133,136 @@ function Barra(props) {
   )
 }
 
+function NuovaSnackBar(props){
+  return <Snackbar
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          open={props.open}
+          autoHideDuration={5000}
+          onClose={props.handleClose}
+          message={props.messaggio}
+          action={
+            <React.Fragment>
+              <IconButton size="small" aria-label="close" color="inherit" onClick={props.handleClose}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </React.Fragment>
+          }
+        />
+}
+
 function Atleti(props){
   return (
     <div>Ciao atleti</div>
   )
 }
 
-// function Azioni(){
-//   return (
-//     <Paper style={{ minHeight: '90vh' }}>
-//       <Grid
-//             container
-//             direction="column"
-//             justify="center"
-//             alignItems="center"
-//             style={{ minHeight: '100vh' }}
-//           >
-//             <Grid item xs={3} justify="flex-start" alignItems="flex-start" style={{marginTop: "20px"}}>
-//             <TextField
-//               id="outlined-secondary"
-//               label="Nome sequenza"
-//               variant="outlined"
-//               color="primary"
-//               required={true}
-//               error={this.state.erroreInputSocieta}
-//               onChange={(e) => this.setState({ nomeSocieta: e.target.value })}
-//             />
-//             </Grid>
-//             <Grid item xs={6} justify="center" alignItems="center">
-//               <Grid
-//               container
-//               direction="row"
-//               justify="center"
-//               alignItems="center"
-//               >
-//                 <Grid item xs={6} justify="center" alignItems="center">
-//                   {Array(this.state.numeroInput).fill(1).map((x, y) => x + y - 1).map((chiave) =>
-//                     (<Grid
-//                       container
-//                       direction="row"
-//                       justify="center"
-//                       alignItems="center"
-//                       spacing={1}
-//                     >
-//                       <Grid item xs={6} justify="center" alignItems="center">
-//                         <TextField 
-//                         id="azione" 
-//                         label="Azione" 
-//                         onChange={(e) => this.aggiungiMossa(chiave, e.target.value)}
-//                         InputLabelProps={{color:"primary"}} 
-//                         InputProps={{  className: this.props.classes.formMosse }}
-//                         />
-//                       </Grid>
-//                       <Grid item xs={6} justify="center" alignItems="center">
-//                         <TextField 
-//                         id="tempo" 
-//                         label="Tempo" 
-//                         onChange={(e) => this.aggiungiTempo(chiave, e.target.value)}
-//                         InputLabelProps={this.props.classes.InputLabelProps} 
-//                         InputProps={{  className: this.props.classes.formMosse }}
-//                         />
-//                       </Grid>
-//                     </Grid>)
-//                   )}
-//                 </Grid>
-//               </Grid>
-//             </Grid>
-//             <Grid item xs={3} justify="flex-end" alignItems="flex-end" style={{marginTop: "20px"}}>
-//               <IconButton style={{color:"white"}} aria-label="aggiungi" onClick={() => this.setState({ numeroInput: this.state.numeroInput + 1 }) }>
-//                 <AddCircleIcon />
-//               </IconButton>
-//             </Grid>
-//           </Grid>
-//     </Paper>
-//   )
-// }
-
 function CreaNuovaSequenza(props){
-  return <div>CIAO</div>
+  const [listaMosse, setListaMosse] = useState([])
+  const [listaTempi, setListaTempi] = useState([])
+  const [nomeSequenza, setNomeSequenza] = useState("")
+  const [numeroInput, setNumeroInput] = useState(1)
+  const aggiungiMossa = (key, text) => {
+    try{
+      if(listaMosse.map((v) => v.chiave).includes(key)){
+        let cambio = listaMosse;
+        cambio[key].testo = text;
+        setListaMosse(cambio);
+      } else {
+        setListaMosse(listaMosse.concat({chiave: key, testo: text}))
+      }
+     } catch (err) {
+      setListaMosse(listaMosse.concat({chiave: key, testo: text}))
+    }
+  }
+  
+  const aggiungiTempo = (key, text) => {
+    try{
+      if(listaTempi.map((v) => v.chiave).includes(key)){
+        let cambio = listaTempi;
+        cambio[key].testo = text;
+        setListaTempi(cambio);
+      } else {
+        setListaTempi(listaTempi.concat({chiave: key, testo: text}))
+      }
+     } catch (err) {
+      setListaTempi(listaTempi.concat({chiave: key, testo: text}))
+    }
+  }
+
+  const salva = () => {
+    console.log("SALVO")
+    if(nomeSequenza === ""){
+      props.apriSnack("Inserisci il nome della sequenza per salvare.")
+      return
+    } else {
+      props.chiudiSnack()
+    }
+    if(listaMosse.length !== listaTempi.length){
+      props.apriSnack("Mancano delle mosse o dei tempi.")
+      return
+    }
+    props.apriSnack("Salvato.")
+    console.log(listaMosse)
+    console.log(listaTempi)
+    return
+  }
+  
+  return (
+    <Grid
+      container
+      direction="column"
+      justify="center"
+      alignItems="center"
+    >
+        <Grid item xs={9} justify="center" alignItems="center">
+          <TextField 
+                id="nomesequenza" 
+                label="Nome sequenza" 
+                onChange={(e) => setNomeSequenza(e.target.value)}
+                />
+        </Grid>
+        <Grid item xs={9} justify="center" alignItems="center">
+          {Array(numeroInput).fill(1).map((x, y) => x + y - 1).map((chiave) =>
+            (<Grid
+              container
+              direction="row"
+              justify="center"
+              alignItems="center"
+              spacing={1}
+            >
+              <Grid item xs={8} justify="center" alignItems="center">
+                <TextField 
+                id="azione" 
+                label="Azione" 
+                onChange={(e) => aggiungiMossa(chiave, e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={4} justify="center" alignItems="center">
+                <TextField 
+                id="tempo" 
+                label="Tempo" 
+                onChange={(e) => aggiungiTempo(chiave, e.target.value)}
+                />
+              </Grid>
+            </Grid>)
+          )}
+        </Grid>
+        <Grid item xs={3} justify="flex-start" alignItems="center" style={{marginTop: "20px"}}>
+          <IconButton color="primary" aria-label="aggiungi" onClick={() => setNumeroInput(numeroInput + 1 ) }>
+            <AddCircleIcon />
+          </IconButton>
+        </Grid>
+        <Grid item xs={12} justify="flex-bottom" alignItems="center">
+          <Divider />
+          <IconButton color="primary" aria-label="save" onClick={() => salva() }>
+            <SaveIcon />
+          </IconButton>
+        </Grid>
+    </Grid>
+  )
 }
 
 function Azioni(props){
@@ -220,6 +272,8 @@ function Azioni(props){
     name: 'hai',
   });
   const [nuovaSequenza, setNuovaSequenza] = useState(false)
+  const [snackAperta, setSnackAperta] = useState(false)
+  const [messaggioSnack, setMessaggioSnack] = useState("")
   const handleChange = name => event => {
     setState({
       ...state,
@@ -231,7 +285,21 @@ function Azioni(props){
       setNuovaSequenza(false)
     }
   };
+  const apriSnack = (messaggio) => {
+    console.log("apri snack")
+    setSnackAperta(true)
+    setMessaggioSnack(messaggio)
+  } 
+  const chiudiSnack = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+  
+    setSnackAperta(false)
+  }
   return (
+    <>
+    <NuovaSnackBar open={snackAperta} messaggio={messaggioSnack} handleClose={chiudiSnack}/>
     <Grid
       container
       direction="column"
@@ -259,8 +327,9 @@ function Azioni(props){
         </Select>
       </FormControl>
      </Grid>
-     {nuovaSequenza ? <CreaNuovaSequenza /> : undefined}
+     {nuovaSequenza ? <CreaNuovaSequenza apriSnack={apriSnack} chiudiSnack={chiudiSnack}/> : undefined}
     </ Grid>
+    </>
   )
 }
 
@@ -273,7 +342,8 @@ function Finestra(props){
           <IconButton style={{color:"black", position:"fixed", right:margine}} aria-label="logout" onClick={() => { props.chiudiFinestra() }}>
             <CloseIcon />
           </IconButton>
-            {props.cosa == "atleti" ? <Atleti /> : <Azioni/>}
+            {props.cosa == "atleti" ? <Atleti apriSnack={props.apriSnack} chiudiSnack={props.apriSnack}/>
+             : <Azioni/>}
           </Paper>
         </div>
     </div>
@@ -284,13 +354,6 @@ class Maestro extends React.Component {
 // The component's Local state.
 state = {
   isSignedIn: false, // Local signed-in state.
-  numeroInput: 1,
-  erroreInputSocieta: false,
-  nomeSocieta:"",
-  listaMosse:[],
-  listaTempi:[],
-  snackOpen: false,
-  snackMessage: "",
   azioni: false,
   atleti: false
 };
@@ -320,61 +383,8 @@ componentWillUnmount() {
   this.unregisterAuthObserver();
 }
 
-handleClose = (event, reason) => {
-  if (reason === 'clickaway') {
-    return;
-  }
-
-  this.setState({snackOpen:false})
-};
-
 chiudiFinestra = () => {
   this.setState({azioni : false, atleti: false})
-}
-
-aggiungiMossa = (key, text) => {
-  try{
-    if(this.state.listaMosse.map((v) => v.chiave).includes(key)){
-      let cambio = this.state.listaMosse;
-      cambio[key].testo = text;
-      this.setState({listaMosse: cambio});
-    } else {
-      this.setState({listaMosse: this.state.listaMosse.concat({chiave: key, testo: text})})
-    }
-   } catch (err) {
-    this.setState({listaMosse: this.state.listaMosse.concat({chiave: key, testo: text})})
-  }
-}
-
-aggiungiTempo = (key, text) => {
-  try{
-    if(this.state.listaTempi.map((v) => v.chiave).includes(key)){
-      let cambio = this.state.listaTempi;
-      cambio[key].testo = text;
-      this.setState({listaTempi: cambio});
-    } else {
-      this.setState({listaTempi: this.state.listaTempi.concat({chiave: key, testo: text})})
-    }
-   } catch (err) {
-    this.setState({listaTempi: this.state.listaTempi.concat({chiave: key, testo: text})})
-  }
-}
-
-salva = () => {
-  if(this.state.nomeSocieta === ""){
-    this.setState({erroreInputSocieta:true})
-    return
-  } else {
-    this.setState({erroreInputSocieta:false})
-  }
-  if(this.state.listaMosse.length !== this.state.listaTempi.length){
-    this.setState({snackOpen:true, snackMessage:"Mancano delle mosse o dei tempi."})
-    return
-  }
-  this.setState({snackOpen:true, snackMessage:"Salvato."})
-  console.log(this.state.listaMosse)
-  console.log(this.state.listaTempi)
-  return
 }
 
 render() {
@@ -397,9 +407,6 @@ render() {
     return (
       <div className="App">
         <div className="App-body">
-          {/* <Fab color="primary" aria-label="add" onClick={() => this.salva()} style={{position:"fixed", right: "20px",bottom:"20px"}}>
-            <SaveIcon />
-          </Fab> */}
           <Grid
             container
             direction="column"
@@ -435,23 +442,6 @@ render() {
             </Grid>
           </Grid>
         </div>
-        <Snackbar
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-          open={this.state.snackOpen}
-          autoHideDuration={10000}
-          onClose={this.handleClose}
-          message={this.state.snackMessage}
-          action={
-            <React.Fragment>
-              <IconButton size="small" aria-label="close" color="inherit" onClick={this.handleClose}>
-                <CloseIcon fontSize="small" />
-              </IconButton>
-            </React.Fragment>
-          }
-        />
       </div>
     )
   }
@@ -500,21 +490,16 @@ function Mossa() {
 
 function App(props) {
   const [schermataMaestro, setSchermataMaestro] = useState(false);
-  const { classes } = props;
   return (
     <div>
       <ThemeProvider theme={theme}>
         <Barra schermataMaestro={schermataMaestro} setSchermataMaestro={setSchermataMaestro}/>
           {schermataMaestro ? 
-          <Maestro classes={classes}/> :
+          <Maestro/> :
           <Mossa />}
       </ThemeProvider>
     </div>
   );
 }
 
-App.propTypes = {
-  classes: PropTypes.object.isRequired
-};
-
-export default withStyles(styles)(App);
+export default App;
