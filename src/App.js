@@ -26,6 +26,8 @@ import '@firebase/firestore'
 import 'firebaseui'
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 
+import MaestriAtleti from './maestriAtleti.js'
+
 const firebaseConfig = {
   apiKey: "AIzaSyCe8mQ5RcM_tm7LPvM1kxbJ211Fq7G3fFA",
   authDomain: "scherma-d21ad.firebaseapp.com",
@@ -132,12 +134,6 @@ function NuovaSnackBar(props){
             </React.Fragment>
           }
         />
-}
-
-function Atleti(props){
-  return (
-    <div>Ciao atleti</div>
-  )
 }
 
 function CreaNuovaSequenza(props){
@@ -528,8 +524,8 @@ function Finestra(props){
           <IconButton style={{color:"black", position:"fixed", right:margine}} aria-label="logout" onClick={() => { props.chiudiFinestra() }}>
             <CloseIcon />
           </IconButton>
-            {props.cosa === "atleti" ? <Atleti apriSnack={props.apriSnack} chiudiSnack={props.apriSnack}/>
-             : <Azioni/>}
+            {props.cosa === "atleti" ? <MaestriAtleti />
+             : <Azioni />}
           </Paper>
         </div>
     </div>
