@@ -18,6 +18,8 @@ import Fab from '@material-ui/core/Fab';
 import SaveIcon from '@material-ui/icons/Save';
 import CloseIcon from '@material-ui/icons/Close';
 import Snackbar from '@material-ui/core/Snackbar';
+import Paper from '@material-ui/core/Paper';
+import Modal from '@material-ui/core/Modal';
 
 import * as firebase from "firebase/app";
 import '@firebase/firestore'
@@ -53,7 +55,7 @@ let theme = createMuiTheme({
     background: {
       default: "#282c34"
     },
-    primary: { main: '#ffffff' },
+    primary: { main: '#282c34' },
     secondary: { main: '#ffffff' },
   },
   status: {
@@ -106,7 +108,7 @@ const styles = {
 function Barra(props) {
   const classes = useStyles();
   return (
-    <AppBar position="fixed" color="transparent" elevation={0}>
+    <AppBar position="fixed" color="primary" elevation={0}>
       <Toolbar>
         <Typography variant="h6" className={classes.title} onClick={() => props.setSchermataMaestro(false)}>
           Scherma
@@ -123,6 +125,113 @@ function Barra(props) {
   )
 }
 
+function Atleti(props){
+  return (
+    <div>Ciao atleti</div>
+  )
+}
+
+// function Azioni(){
+//   return (
+//     <Paper style={{ minHeight: '90vh' }}>
+//       <Grid
+//             container
+//             direction="column"
+//             justify="center"
+//             alignItems="center"
+//             style={{ minHeight: '100vh' }}
+//           >
+//             <Grid item xs={3} justify="flex-start" alignItems="flex-start" style={{marginTop: "20px"}}>
+//             <TextField
+//               id="outlined-secondary"
+//               label="Nome sequenza"
+//               variant="outlined"
+//               color="primary"
+//               required={true}
+//               error={this.state.erroreInputSocieta}
+//               onChange={(e) => this.setState({ nomeSocieta: e.target.value })}
+//             />
+//             </Grid>
+//             <Grid item xs={6} justify="center" alignItems="center">
+//               <Grid
+//               container
+//               direction="row"
+//               justify="center"
+//               alignItems="center"
+//               >
+//                 <Grid item xs={6} justify="center" alignItems="center">
+//                   {Array(this.state.numeroInput).fill(1).map((x, y) => x + y - 1).map((chiave) =>
+//                     (<Grid
+//                       container
+//                       direction="row"
+//                       justify="center"
+//                       alignItems="center"
+//                       spacing={1}
+//                     >
+//                       <Grid item xs={6} justify="center" alignItems="center">
+//                         <TextField 
+//                         id="azione" 
+//                         label="Azione" 
+//                         onChange={(e) => this.aggiungiMossa(chiave, e.target.value)}
+//                         InputLabelProps={{color:"primary"}} 
+//                         InputProps={{  className: this.props.classes.formMosse }}
+//                         />
+//                       </Grid>
+//                       <Grid item xs={6} justify="center" alignItems="center">
+//                         <TextField 
+//                         id="tempo" 
+//                         label="Tempo" 
+//                         onChange={(e) => this.aggiungiTempo(chiave, e.target.value)}
+//                         InputLabelProps={this.props.classes.InputLabelProps} 
+//                         InputProps={{  className: this.props.classes.formMosse }}
+//                         />
+//                       </Grid>
+//                     </Grid>)
+//                   )}
+//                 </Grid>
+//               </Grid>
+//             </Grid>
+//             <Grid item xs={3} justify="flex-end" alignItems="flex-end" style={{marginTop: "20px"}}>
+//               <IconButton style={{color:"white"}} aria-label="aggiungi" onClick={() => this.setState({ numeroInput: this.state.numeroInput + 1 }) }>
+//                 <AddCircleIcon />
+//               </IconButton>
+//             </Grid>
+//           </Grid>
+//     </Paper>
+//   )
+// }
+
+function Azioni(props){
+  return (
+    <Grid
+      container
+      direction="column"
+      justify="center"
+      alignItems="center"
+      style={{ minHeight: '80vh' }}
+    >
+     <Grid item xs={6} justify="flex-end" alignItems="flex-end" style={{marginTop: "20px"}}> 
+        ciao
+     </Grid>
+    </ Grid>
+  )
+}
+
+function Finestra(props){
+  return (
+    <div className="App">
+        <div className="App-body">
+          <Paper style={{margin:"60px", marginTop:"80px", minHeight:"80vh"}}>
+          <IconButton style={{color:"black", position:"fixed", right:"60px"}} aria-label="logout" onClick={() => { props.chiudiFinestra() }}>
+            <CloseIcon />
+          </IconButton>
+            {props.cosa == "atleti" ? <Atleti /> : <Azioni/>}
+          </Paper>
+        </div>
+    </div>
+  )
+}
+
 class Maestro extends React.Component {
 // The component's Local state.
 state = {
@@ -134,6 +243,8 @@ state = {
   listaTempi:[],
   snackOpen: false,
   snackMessage: "",
+  azioni: false,
+  atleti: false
 };
 
 // Configure FirebaseUI.
@@ -168,6 +279,10 @@ handleClose = (event, reason) => {
 
   this.setState({snackOpen:false})
 };
+
+chiudiFinestra = () => {
+  this.setState({azioni : false, atleti: false})
+}
 
 aggiungiMossa = (key, text) => {
   try{
@@ -215,6 +330,12 @@ salva = () => {
 }
 
 render() {
+  if (this.state.azioni){
+    return <Finestra cosa="azioni" chiudiFinestra={this.chiudiFinestra}/>
+  }
+  if (this.state.atleti){
+    return <Finestra cosa="atleti" chiudiFinestra={this.chiudiFinestra}/>
+  }
   if (!this.state.isSignedIn) {
     return (
       <div className="App">
@@ -228,9 +349,9 @@ render() {
     return (
       <div className="App">
         <div className="App-body">
-          <Fab color="primary" aria-label="add" onClick={() => this.salva()} style={{position:"fixed", right: "20px",bottom:"20px"}}>
+          {/* <Fab color="primary" aria-label="add" onClick={() => this.salva()} style={{position:"fixed", right: "20px",bottom:"20px"}}>
             <SaveIcon />
-          </Fab>
+          </Fab> */}
           <Grid
             container
             direction="column"
@@ -238,63 +359,31 @@ render() {
             alignItems="center"
             style={{ minHeight: '100vh' }}
           >
-            <Grid item xs={3} justify="flex-start" alignItems="flex-start" style={{marginTop: "20px"}}>
+            <Grid item xs={3} justify="center" alignItems="center">
               <Typography variant="h4">Benvenuto {firebase.auth().currentUser.displayName}</Typography>
             </Grid>
-            <Grid item xs={3} justify="flex-start" alignItems="flex-start" style={{marginTop: "20px"}}>
-            <TextField
-              id="outlined-secondary"
-              label="Nome società"
-              variant="outlined"
-              color="primary"
-              required={true}
-              error={this.state.erroreInputSocieta}
-              onChange={(e) => this.setState({ nomeSocieta: e.target.value })}
-            />
+            <Grid item xs={3} justify="center" alignItems="center">
+              <div style={{height:"40px"}}/>
             </Grid>
-            <Grid item xs={6} justify="center" alignItems="center">
+            <Grid item xs={3} justify="center" alignItems="center">
               <Grid
               container
               direction="row"
               justify="center"
               alignItems="center"
+              spacing={3}
               >
                 <Grid item xs={6} justify="center" alignItems="center">
-                  {Array(this.state.numeroInput).fill(1).map((x, y) => x + y - 1).map((chiave) =>
-                    (<Grid
-                      container
-                      direction="row"
-                      justify="center"
-                      alignItems="center"
-                      spacing={1}
-                    >
-                      <Grid item xs={6} justify="center" alignItems="center">
-                        <TextField 
-                        id="mossa" 
-                        label="Mossa" 
-                        onChange={(e) => this.aggiungiMossa(chiave, e.target.value)}
-                        InputLabelProps={{color:"primary"}} 
-                        InputProps={{  className: this.props.classes.formMosse }}
-                        />
-                      </Grid>
-                      <Grid item xs={6} justify="center" alignItems="center">
-                        <TextField 
-                        id="tempo" 
-                        label="Tempo" 
-                        onChange={(e) => this.aggiungiTempo(chiave, e.target.value)}
-                        InputLabelProps={this.props.classes.InputLabelProps} 
-                        InputProps={{  className: this.props.classes.formMosse }}
-                        />
-                      </Grid>
-                    </Grid>)
-                  )}
+                  <Button variant="contained" color="secondary" size="large" onClick={() => this.setState({azioni:true})}>
+                    Azioni
+                  </Button>
+                </Grid>
+                <Grid item xs={6} justify="center" alignItems="center">
+                  <Button variant="contained" color="secondary" size="large" onClick={() => this.setState({atleti:true})}>
+                    Atleti
+                  </Button>
                 </Grid>
               </Grid>
-            </Grid>
-            <Grid item xs={3} justify="flex-end" alignItems="flex-end" style={{marginTop: "20px"}}>
-              <IconButton style={{color:"white"}} aria-label="aggiungi" onClick={() => this.setState({ numeroInput: this.state.numeroInput + 1 }) }>
-                <AddCircleIcon />
-              </IconButton>
             </Grid>
           </Grid>
         </div>
