@@ -19,7 +19,11 @@ import SaveIcon from '@material-ui/icons/Save';
 import CloseIcon from '@material-ui/icons/Close';
 import Snackbar from '@material-ui/core/Snackbar';
 import Paper from '@material-ui/core/Paper';
-import Modal from '@material-ui/core/Modal';
+import Select from '@material-ui/core/Select';
+import InputLabel from '@material-ui/core/InputLabel';
+import FormControl from '@material-ui/core/FormControl';
+import Divider from '@material-ui/core/Divider';
+import MenuItem from '@material-ui/core/MenuItem';
 
 import * as firebase from "firebase/app";
 import '@firebase/firestore'
@@ -87,6 +91,10 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     flexGrow: 1,
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 180,
   },
 }));
 
@@ -201,28 +209,68 @@ function Atleti(props){
 //   )
 // }
 
+function CreaNuovaSequenza(props){
+  return <div>CIAO</div>
+}
+
 function Azioni(props){
+  const classes = useStyles();
+  const [state, setState] = useState({
+    azioni: '',
+    name: 'hai',
+  });
+  const [nuovaSequenza, setNuovaSequenza] = useState(false)
+  const handleChange = name => event => {
+    setState({
+      ...state,
+      [name]: event.target.value,
+    });
+    if (event.target.value == "creaNuova883745"){
+      setNuovaSequenza(true)
+    } else {
+      setNuovaSequenza(false)
+    }
+  };
   return (
     <Grid
       container
       direction="column"
-      justify="center"
+      justify="flex-start"
       alignItems="center"
       style={{ minHeight: '80vh' }}
     >
-     <Grid item xs={6} justify="flex-end" alignItems="flex-end" style={{marginTop: "20px"}}> 
-        ciao
+     <Grid item xs={12} justify="center" alignItems="center" style={{marginTop: "40px"}}> 
+        <FormControl variant="filled" className={classes.formControl}>
+          <InputLabel htmlFor="filled-age-native-simple">Sequenze</InputLabel>
+          <Select
+            native
+            value={state.azioni}
+            onChange={handleChange('azioni')}
+            inputProps={{
+              name: 'azioni',
+              id: 'filled-azini-native-simple',
+            }}
+          >
+          <option value="" />
+          <option value={10}>Ten</option>
+          <option value={20}>Twenty</option>
+          <Divider />
+          <option value="creaNuova883745">+ Crea nuova</option>
+        </Select>
+      </FormControl>
      </Grid>
+     {nuovaSequenza ? <CreaNuovaSequenza /> : undefined}
     </ Grid>
   )
 }
 
 function Finestra(props){
+  var margine = "50px";
   return (
     <div className="App">
         <div className="App-body">
-          <Paper style={{margin:"60px", marginTop:"80px", minHeight:"80vh"}}>
-          <IconButton style={{color:"black", position:"fixed", right:"60px"}} aria-label="logout" onClick={() => { props.chiudiFinestra() }}>
+          <Paper style={{margin:margine, marginTop:"80px", minHeight:"80vh"}}>
+          <IconButton style={{color:"black", position:"fixed", right:margine}} aria-label="logout" onClick={() => { props.chiudiFinestra() }}>
             <CloseIcon />
           </IconButton>
             {props.cosa == "atleti" ? <Atleti /> : <Azioni/>}
