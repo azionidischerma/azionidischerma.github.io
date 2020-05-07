@@ -290,6 +290,7 @@ function VediSequenza(props){
         setListaMosse(listaMosse.concat({chiave: key, testo: text}))
       }
      } catch (err) {
+       console.log(err)
       setListaMosse(listaMosse.concat({chiave: key, testo: text}))
     }
   }
@@ -304,11 +305,14 @@ function VediSequenza(props){
         setListaTempi(listaTempi.concat({chiave: key, testo: text}))
       }
      } catch (err) {
+       console.log(err)
       setListaTempi(listaTempi.concat({chiave: key, testo: text}))
     }
   }
 
   const salva = () => {
+    console.log(listaMosse)
+    console.log(listaTempi)
     if(nomeSequenza === ""){
       props.apriSnack("Inserisci il nome della sequenza per salvare.")
       return
@@ -375,10 +379,10 @@ function VediSequenza(props){
               spacing={1}
               key={listaMosse[0].testo + nomeSequenza}
             >
-              <Grid item xs={8} alignItems="center" key={listaMosse[chiave].testo}>
+              <Grid item xs={8} alignItems="center" key={listaMosse[chiave].testo + nomeSequenza}>
                 <TextField 
                 key={listaMosse[chiave].testo + nomeSequenza + chiave.toString()}
-                id="azione" 
+                id={"azione"+chiave.toString()}
                 label="Azione" 
                 defaultValue={listaMosse[chiave].testo}
                 onChange={(e) => aggiungiMossa(chiave, e.target.value)}
@@ -387,7 +391,7 @@ function VediSequenza(props){
               <Grid item xs={4} alignItems="center" key={listaTempi[chiave].testo + nomeSequenza + chiave.toString()}>
                 <TextField 
                 key={listaTempi[chiave].testo + nomeSequenza + chiave.toString()}
-                id="tempo" 
+                id={"tempo"+chiave.toString()}
                 label="Tempo" 
                 defaultValue={listaTempi[chiave].testo}
                 onChange={(e) => aggiungiTempo(chiave, e.target.value)}
@@ -399,8 +403,8 @@ function VediSequenza(props){
         <Grid item xs={3} alignItems="center" style={{marginTop: "20px"}} key={"add" + nomeSequenza}>
           <IconButton color="primary" aria-label="aggiungi" onClick={() => {
             setNumeroInput(numeroInput + 1 )
-            aggiungiMossa(numeroInput+1, "")
-            aggiungiTempo(numeroInput+1, "")
+            aggiungiMossa(numeroInput, "")
+            aggiungiTempo(numeroInput, "")
             } }>
             <AddCircleIcon />
           </IconButton>
@@ -416,6 +420,9 @@ function VediSequenza(props){
 }
 
 async function getSequenzeSalvate(listaSequenze, setListaSequenze) {
+  if (listaSequenze === undefined){
+    return
+  }
   if (listaSequenze[0] !== "caricamento..."){
     return
   }
@@ -493,6 +500,8 @@ function Azioni(props){
       setListaSequenze={setListaSequenze}/> : 
       (selezione !== "caricamento..." ? 
       <VediSequenza 
+      apriSnack={apriSnack}
+      chiudiSnack={chiudiSnack}
       nomeSequenza={selezione} 
       listaMosse={listaMosse} 
       setListaMosse={setListaMosse}
