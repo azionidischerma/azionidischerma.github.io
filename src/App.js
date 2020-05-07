@@ -357,15 +357,15 @@ render() {
             direction="column"
             justify="center"
             alignItems="center"
-            style={{ minHeight: '100vh' }}
+            style={{ minHeight: '100vh', minWidth: '100vw' }}
           >
-            <Grid item xs={3} justify="center" alignItems="center">
+            <Grid item xs={12} sm={6} justify="center" alignItems="center">
               <Typography variant="h4">Benvenuto {firebase.auth().currentUser.displayName}</Typography>
             </Grid>
             <Grid item xs={3} justify="center" alignItems="center">
               <div style={{height:"40px"}}/>
             </Grid>
-            <Grid item xs={3} justify="center" alignItems="center">
+            <Grid item xs={12} sm={6} justify="center" alignItems="center">
               <Grid
               container
               direction="row"
