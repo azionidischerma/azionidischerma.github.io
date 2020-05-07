@@ -208,8 +208,9 @@ function CreaNuovaSequenza(props){
       direction="column"
       justify="center"
       alignItems="center"
+      key="nuova"
     >
-        <Grid item xs={9} alignItems="center">
+        <Grid item xs={9} alignItems="center" key="nomenuova">
           <TextField 
                 id="nomesequenza" 
                 label="Nome sequenza" 
@@ -224,19 +225,22 @@ function CreaNuovaSequenza(props){
               justify="center"
               alignItems="center"
               spacing={1}
+              key={"nuova" + chiave.toString()}
             >
-              <Grid item xs={8} alignItems="center">
+              <Grid item xs={8} alignItems="center" key={"azione" + chiave.toString()}>
                 <TextField 
-                id="azione" 
+                id={"azione_sel" + chiave.toString()}
                 label="Azione" 
                 onChange={(e) => aggiungiMossa(chiave, e.target.value)}
+                key={"azione_sel" + chiave.toString()}
                 />
               </Grid>
-              <Grid item xs={4} alignItems="center">
+              <Grid item xs={4} alignItems="center" key={"tempo" + chiave.toString()}>
                 <TextField 
-                id="tempo" 
+                id={"tempo_sel" + chiave.toString()}
                 label="Tempo" 
                 onChange={(e) => aggiungiTempo(chiave, e.target.value)}
+                key={"tempo_sel" + chiave.toString()}
                 />
               </Grid>
             </Grid>)
@@ -341,13 +345,13 @@ function VediSequenza(props){
     return
   }
 
-  if (nomeSequenza == ""){
+  if (nomeSequenza === ""){
     return <div>Scegli una sequenza</div>
   }
 
   getSequenza(listaMosse, setListaMosse, nomeSequenza)
   getTempi(listaTempi, setListaTempi, nomeSequenza)
-  if (numeroInput == -1 && listaMosse[0].testo != "caricamento..." && listaTempi[0].testo != "caricamento..."){
+  if (numeroInput === -1 && listaMosse[0].testo !== "caricamento..." && listaTempi[0].testo !== "caricamento..."){
     setNumeroInput(listaMosse.length)
   }
 
@@ -370,19 +374,19 @@ function VediSequenza(props){
                 />
         </Grid>
         <Grid item xs={9} alignItems="center">
-          {Array((numeroInput != -1 ? numeroInput : 1)).fill(1).map((x, y) => x + y - 1).map((chiave) => 
+          {Array((numeroInput !== -1 ? numeroInput : 1)).fill(1).map((x, y) => x + y - 1).map((chiave) => 
           (<Grid
               container
               direction="row"
               justify="center"
               alignItems="center"
               spacing={1}
-              key={listaMosse[0].testo + nomeSequenza}
+              key={listaMosse[0].testo + nomeSequenza + chiave.toString()}
             >
-              <Grid item xs={8} alignItems="center" key={listaMosse[chiave].testo + nomeSequenza}>
+              <Grid item xs={8} alignItems="center" key={listaMosse[chiave].testo + nomeSequenza + chiave.toString()}>
                 <TextField 
                 key={listaMosse[chiave].testo + nomeSequenza + chiave.toString()}
-                id={"azione"+chiave.toString()}
+                id={"azione_vecchia" + chiave.toString()}
                 label="Azione" 
                 defaultValue={listaMosse[chiave].testo}
                 onChange={(e) => aggiungiMossa(chiave, e.target.value)}
@@ -391,7 +395,7 @@ function VediSequenza(props){
               <Grid item xs={4} alignItems="center" key={listaTempi[chiave].testo + nomeSequenza + chiave.toString()}>
                 <TextField 
                 key={listaTempi[chiave].testo + nomeSequenza + chiave.toString()}
-                id={"tempo"+chiave.toString()}
+                id={"tempo_vecchio" + chiave.toString()}
                 label="Tempo" 
                 defaultValue={listaTempi[chiave].testo}
                 onChange={(e) => aggiungiTempo(chiave, e.target.value)}
@@ -427,7 +431,7 @@ async function getSequenzeSalvate(listaSequenze, setListaSequenze) {
     return
   }
   const snapshot = await firebase.firestore().collection(firebase.auth().currentUser.uid).get()
-  setListaSequenze([""].concat(snapshot.docs.map(doc => doc.id).filter(id => id != "c76ln8qXtrzFjQirovu1")))
+  setListaSequenze([""].concat(snapshot.docs.map(doc => doc.id).filter(id => id !== "c76ln8qXtrzFjQirovu1")))
 }
 
 function Azioni(props){
