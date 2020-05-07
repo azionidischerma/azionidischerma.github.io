@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import './App.css';
 
-import PropTypes from "prop-types";
-
 // Material
-import { createMuiTheme, makeStyles, ThemeProvider, responsiveFontSizes, withStyles } from '@material-ui/core/styles';
+import { createMuiTheme, makeStyles, ThemeProvider, responsiveFontSizes } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -14,7 +12,6 @@ import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
-import Fab from '@material-ui/core/Fab';
 import SaveIcon from '@material-ui/icons/Save';
 import CloseIcon from '@material-ui/icons/Close';
 import Snackbar from '@material-ui/core/Snackbar';
@@ -23,7 +20,6 @@ import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Divider from '@material-ui/core/Divider';
-import MenuItem from '@material-ui/core/MenuItem';
 
 import * as firebase from "firebase/app";
 import '@firebase/firestore'
@@ -97,21 +93,6 @@ const useStyles = makeStyles((theme) => ({
     minWidth: 180,
   },
 }));
-
-const styles = {
-  InputLabelProps: {
-    color: "white"
-  },
-  formMosse: {
-    color: "white",
-    fullWidth: true,
-    borderBottom: '2px solid white',
-    '&:after': {
-      // The MUI source seems to use this but it doesn't work
-      borderBottom: '2px solid white',
-    },
-  }
-};
 
 function Barra(props) {
   const classes = useStyles();
@@ -193,7 +174,6 @@ function CreaNuovaSequenza(props){
   }
 
   const salva = () => {
-    console.log("SALVO")
     if(nomeSequenza === ""){
       props.apriSnack("Inserisci il nome della sequenza per salvare.")
       return
@@ -204,9 +184,21 @@ function CreaNuovaSequenza(props){
       props.apriSnack("Mancano delle mosse o dei tempi.")
       return
     }
+    let userData = {
+      nome: firebase.auth().currentUser.displayName,
+      mail: firebase.auth().currentUser.email,
+    };
+    let azioniData = {
+      sequenza: listaMosse.map((v) => v.testo),
+      tempi: listaTempi.map((v) => v.testo)
+    }
+    
+    const db = firebase.firestore();
+    var coll = db.collection(firebase.auth().currentUser.uid)
+    coll.doc(nomeSequenza).set(azioniData);
+    coll.doc("c76ln8qXtrzFjQirovu1").set(userData)
+    getSequenzeSalvate(props.listaSequenze, props.setListaSequenze)
     props.apriSnack("Salvato.")
-    console.log(listaMosse)
-    console.log(listaTempi)
     return
   }
   
@@ -217,14 +209,14 @@ function CreaNuovaSequenza(props){
       justify="center"
       alignItems="center"
     >
-        <Grid item xs={9} justify="center" alignItems="center">
+        <Grid item xs={9} alignItems="center">
           <TextField 
                 id="nomesequenza" 
                 label="Nome sequenza" 
                 onChange={(e) => setNomeSequenza(e.target.value)}
                 />
         </Grid>
-        <Grid item xs={9} justify="center" alignItems="center">
+        <Grid item xs={9} alignItems="center">
           {Array(numeroInput).fill(1).map((x, y) => x + y - 1).map((chiave) =>
             (<Grid
               container
@@ -233,14 +225,14 @@ function CreaNuovaSequenza(props){
               alignItems="center"
               spacing={1}
             >
-              <Grid item xs={8} justify="center" alignItems="center">
+              <Grid item xs={8} alignItems="center">
                 <TextField 
                 id="azione" 
                 label="Azione" 
                 onChange={(e) => aggiungiMossa(chiave, e.target.value)}
                 />
               </Grid>
-              <Grid item xs={4} justify="center" alignItems="center">
+              <Grid item xs={4} alignItems="center">
                 <TextField 
                 id="tempo" 
                 label="Tempo" 
@@ -250,12 +242,12 @@ function CreaNuovaSequenza(props){
             </Grid>)
           )}
         </Grid>
-        <Grid item xs={3} justify="flex-start" alignItems="center" style={{marginTop: "20px"}}>
+        <Grid item xs={3} alignItems="center" style={{marginTop: "20px"}}>
           <IconButton color="primary" aria-label="aggiungi" onClick={() => setNumeroInput(numeroInput + 1 ) }>
             <AddCircleIcon />
           </IconButton>
         </Grid>
-        <Grid item xs={12} justify="flex-bottom" alignItems="center">
+        <Grid item xs={12} alignItems="center">
           <Divider />
           <IconButton color="primary" aria-label="save" onClick={() => salva() }>
             <SaveIcon />
@@ -265,21 +257,189 @@ function CreaNuovaSequenza(props){
   )
 }
 
+async function getSequenza(listaMosse, setListaMosse, nomeSequenza){
+  if (listaMosse[0].testo !== "caricamento..."){
+    return false
+  }
+  let sequenza = firebase.firestore().collection(firebase.auth().currentUser.uid).doc(nomeSequenza)
+  sequenza.get().then(docs => console.log(docs.data().sequenza.map((azione, index) => ({chiave: index, testo: azione}))))
+  sequenza.get().then(docs => setListaMosse(docs.data().sequenza.map((azione, index) => ({chiave: index, testo: azione}))))
+  return true
+}
+
+async function getTempi(listaTempi, setListaTempi, nomeSequenza){
+  if (listaTempi[0].testo !== "caricamento..."){
+    return
+  }
+  let sequenza = firebase.firestore().collection(firebase.auth().currentUser.uid).doc(nomeSequenza)
+  sequenza.get().then(docs => setListaTempi(docs.data().tempi.map((tempo, index) => ({chiave: index, testo: tempo}))))
+}
+
+function VediSequenza(props){
+  var [listaMosse, setListaMosse] = [props.listaMosse, props.setListaMosse]
+  var [listaTempi, setListaTempi] = [props.listaTempi, props.setListaTempi]
+  var [numeroInput, setNumeroInput] = [props.numeroInput, props.setNumeroInput]
+  var nomeSequenza = props.nomeSequenza
+  const aggiungiMossa = (key, text) => {
+    try{
+      if(listaMosse.map((v) => v.chiave).includes(key)){
+        let cambio = listaMosse;
+        cambio[key].testo = text;
+        setListaMosse(cambio);
+      } else {
+        setListaMosse(listaMosse.concat({chiave: key, testo: text}))
+      }
+     } catch (err) {
+      setListaMosse(listaMosse.concat({chiave: key, testo: text}))
+    }
+  }
+  
+  const aggiungiTempo = (key, text) => {
+    try{
+      if(listaTempi.map((v) => v.chiave).includes(key)){
+        let cambio = listaTempi;
+        cambio[key].testo = text;
+        setListaTempi(cambio);
+      } else {
+        setListaTempi(listaTempi.concat({chiave: key, testo: text}))
+      }
+     } catch (err) {
+      setListaTempi(listaTempi.concat({chiave: key, testo: text}))
+    }
+  }
+
+  const salva = () => {
+    if(nomeSequenza === ""){
+      props.apriSnack("Inserisci il nome della sequenza per salvare.")
+      return
+    } else {
+      props.chiudiSnack()
+    }
+    if(listaMosse.length !== listaTempi.length){
+      props.apriSnack("Mancano delle mosse o dei tempi.")
+      return
+    }
+    let userData = {
+      nome: firebase.auth().currentUser.displayName,
+      mail: firebase.auth().currentUser.email,
+    };
+    let azioniData = {
+      sequenza: listaMosse.map((v) => v.testo),
+      tempi: listaTempi.map((v) => v.testo)
+    }
+    
+    const db = firebase.firestore();
+    var coll = db.collection(firebase.auth().currentUser.uid)
+    coll.doc(nomeSequenza).set(azioniData);
+    coll.doc("c76ln8qXtrzFjQirovu1").set(userData)
+    getSequenzeSalvate(props.listaSequenze, props.setListaSequenze)
+    props.apriSnack("Salvato.")
+    return
+  }
+
+  if (nomeSequenza == ""){
+    return <div>Scegli una sequenza</div>
+  }
+
+  getSequenza(listaMosse, setListaMosse, nomeSequenza)
+  getTempi(listaTempi, setListaTempi, nomeSequenza)
+  if (numeroInput == -1 && listaMosse[0].testo != "caricamento..." && listaTempi[0].testo != "caricamento..."){
+    setNumeroInput(listaMosse.length)
+  }
+
+  
+  return (
+    <Grid
+      container
+      direction="column"
+      justify="center"
+      alignItems="center"
+      key={nomeSequenza}
+    >
+        <Grid item xs={9} alignItems="center">
+          <TextField 
+                id="nomesequenza" 
+                label="Nome sequenza" 
+                defaultValue={nomeSequenza}
+                disabled
+                key={nomeSequenza}
+                />
+        </Grid>
+        <Grid item xs={9} alignItems="center">
+          {Array((numeroInput != -1 ? numeroInput : 1)).fill(1).map((x, y) => x + y - 1).map((chiave) => 
+          (<Grid
+              container
+              direction="row"
+              justify="center"
+              alignItems="center"
+              spacing={1}
+              key={listaMosse[0].testo + nomeSequenza}
+            >
+              <Grid item xs={8} alignItems="center" key={listaMosse[chiave].testo}>
+                <TextField 
+                key={listaMosse[chiave].testo + nomeSequenza + chiave.toString()}
+                id="azione" 
+                label="Azione" 
+                defaultValue={listaMosse[chiave].testo}
+                onChange={(e) => aggiungiMossa(chiave, e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={4} alignItems="center" key={listaTempi[chiave].testo + nomeSequenza + chiave.toString()}>
+                <TextField 
+                key={listaTempi[chiave].testo + nomeSequenza + chiave.toString()}
+                id="tempo" 
+                label="Tempo" 
+                defaultValue={listaTempi[chiave].testo}
+                onChange={(e) => aggiungiTempo(chiave, e.target.value)}
+                />
+              </Grid>
+            </Grid>)
+          )}
+        </Grid>
+        <Grid item xs={3} alignItems="center" style={{marginTop: "20px"}} key={"add" + nomeSequenza}>
+          <IconButton color="primary" aria-label="aggiungi" onClick={() => {
+            setNumeroInput(numeroInput + 1 )
+            aggiungiMossa(numeroInput+1, "")
+            aggiungiTempo(numeroInput+1, "")
+            } }>
+            <AddCircleIcon />
+          </IconButton>
+        </Grid>
+        <Grid item xs={12} alignItems="center" key={"salva" +  + nomeSequenza}>
+          <Divider />
+          <IconButton color="primary" aria-label="save" onClick={() => salva() }>
+            <SaveIcon />
+          </IconButton>
+        </Grid>
+    </Grid>
+  )
+}
+
+async function getSequenzeSalvate(listaSequenze, setListaSequenze) {
+  if (listaSequenze[0] !== "caricamento..."){
+    return
+  }
+  const snapshot = await firebase.firestore().collection(firebase.auth().currentUser.uid).get()
+  setListaSequenze([""].concat(snapshot.docs.map(doc => doc.id).filter(id => id != "c76ln8qXtrzFjQirovu1")))
+}
+
 function Azioni(props){
   const classes = useStyles();
-  const [state, setState] = useState({
-    azioni: '',
-    name: 'hai',
-  });
+  const [listaMosse, setListaMosse] = useState([{chiave:0, testo:"caricamento..."}])
+  const [listaTempi, setListaTempi] = useState([{chiave:0, testo:"caricamento..."}])
+  const [selezione, setSelezione] = useState("")
   const [nuovaSequenza, setNuovaSequenza] = useState(false)
   const [snackAperta, setSnackAperta] = useState(false)
   const [messaggioSnack, setMessaggioSnack] = useState("")
-  const handleChange = name => event => {
-    setState({
-      ...state,
-      [name]: event.target.value,
-    });
-    if (event.target.value == "creaNuova883745"){
+  const [listaSequenze, setListaSequenze] = useState(["caricamento..."])
+  const [numeroInput, setNumeroInput] = useState(-1)
+
+  const handleChange = (event) => {
+    setSelezione(event.target.value)
+    setListaMosse([{chiave:0, testo:"caricamento..."}])
+    setListaTempi([{chiave:0, testo:"caricamento..."}])
+    setNumeroInput(-1)
+    if (event.target.value === "creaNuova883745"){
       setNuovaSequenza(true)
     } else {
       setNuovaSequenza(false)
@@ -297,6 +457,8 @@ function Azioni(props){
   
     setSnackAperta(false)
   }
+  getSequenzeSalvate(listaSequenze, setListaSequenze)
+
   return (
     <>
     <NuovaSnackBar open={snackAperta} messaggio={messaggioSnack} handleClose={chiudiSnack}/>
@@ -307,27 +469,38 @@ function Azioni(props){
       alignItems="center"
       style={{ minHeight: '80vh' }}
     >
-     <Grid item xs={12} justify="center" alignItems="center" style={{marginTop: "40px"}}> 
+     <Grid item xs={12} alignItems="center" style={{marginTop: "40px"}}> 
         <FormControl variant="filled" className={classes.formControl}>
           <InputLabel htmlFor="filled-age-native-simple">Sequenze</InputLabel>
           <Select
             native
-            value={state.azioni}
-            onChange={handleChange('azioni')}
+            value={selezione}
+            onChange={(event) => handleChange(event)}
             inputProps={{
               name: 'azioni',
               id: 'filled-azini-native-simple',
             }}
           >
-          <option value="" />
-          <option value={10}>Ten</option>
-          <option value={20}>Twenty</option>
+          {listaSequenze.map((sequenzaN) =><option value={sequenzaN}>{sequenzaN}</option>)}
           <Divider />
           <option value="creaNuova883745">+ Crea nuova</option>
         </Select>
       </FormControl>
      </Grid>
-     {nuovaSequenza ? <CreaNuovaSequenza apriSnack={apriSnack} chiudiSnack={chiudiSnack}/> : undefined}
+     {nuovaSequenza ? <CreaNuovaSequenza apriSnack={apriSnack}
+      chiudiSnack={chiudiSnack}
+      listaSequenze={listaSequenze}
+      setListaSequenze={setListaSequenze}/> : 
+      (selezione !== "caricamento..." ? 
+      <VediSequenza 
+      nomeSequenza={selezione} 
+      listaMosse={listaMosse} 
+      setListaMosse={setListaMosse}
+      listaTempi={listaTempi} 
+      setListaTempi={setListaTempi}
+      numeroInput={numeroInput}
+      setNumeroInput={setNumeroInput}
+      /> : undefined)}
     </ Grid>
     </>
   )
@@ -342,7 +515,7 @@ function Finestra(props){
           <IconButton style={{color:"black", position:"fixed", right:margine}} aria-label="logout" onClick={() => { props.chiudiFinestra() }}>
             <CloseIcon />
           </IconButton>
-            {props.cosa == "atleti" ? <Atleti apriSnack={props.apriSnack} chiudiSnack={props.apriSnack}/>
+            {props.cosa === "atleti" ? <Atleti apriSnack={props.apriSnack} chiudiSnack={props.apriSnack}/>
              : <Azioni/>}
           </Paper>
         </div>
@@ -414,13 +587,13 @@ render() {
             alignItems="center"
             style={{ minHeight: '100vh', minWidth: '100vw' }}
           >
-            <Grid item xs={12} sm={6} justify="center" alignItems="center">
+            <Grid item xs={12} sm={6} alignItems="center">
               <Typography variant="h4">Benvenuto {firebase.auth().currentUser.displayName}</Typography>
             </Grid>
-            <Grid item xs={3} justify="center" alignItems="center">
+            <Grid item xs={3} alignItems="center">
               <div style={{height:"40px"}}/>
             </Grid>
-            <Grid item xs={12} sm={6} justify="center" alignItems="center">
+            <Grid item xs={12} sm={6} alignItems="center">
               <Grid
               container
               direction="row"
@@ -428,12 +601,12 @@ render() {
               alignItems="center"
               spacing={3}
               >
-                <Grid item xs={6} justify="center" alignItems="center">
+                <Grid item xs={6} alignItems="center">
                   <Button variant="contained" color="secondary" size="large" onClick={() => this.setState({azioni:true})}>
                     Azioni
                   </Button>
                 </Grid>
-                <Grid item xs={6} justify="center" alignItems="center">
+                <Grid item xs={6} alignItems="center">
                   <Button variant="contained" color="secondary" size="large" onClick={() => this.setState({atleti:true})}>
                     Atleti
                   </Button>
