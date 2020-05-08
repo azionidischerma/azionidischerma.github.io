@@ -55,13 +55,28 @@ function NuovaSnackBar(props){
 
 async function getSequenzeSalvate(listaSequenze, setListaSequenze) {
     if (listaSequenze === undefined){
-        return
+      console.log("UNDEFINED")
+      return
     }
     if (listaSequenze[0] !== "caricamento..."){
         return
     }
     const snapshot = await firebase.firestore().collection(firebase.auth().currentUser.uid).get()
     setListaSequenze([""].concat(snapshot.docs.map(doc => doc.id).filter(id => id !== "c76ln8qXtrzFjQirovu1")))
+
+}
+
+async function getMail(listaMail, setListaMail, nomeSequenza){
+  if (listaMail[0].testo !== "caricamento..." || nomeSequenza == ""){
+    return false
+  }
+  let sequenza = firebase.firestore().collection(firebase.auth().currentUser.uid).doc(nomeSequenza)
+  sequenza.get().then(docs => setListaMail(docs.data().atleti.map((mail, index) => ({chiave: index, testo: mail}))))
+  .catch((err) => {
+    console.log(err)
+    setListaMail([{chiave: 0, testo: ""}])
+  })
+  return true
 }
 
 function MaestriAtleti(props){
@@ -70,11 +85,14 @@ function MaestriAtleti(props){
     const [snackAperta, setSnackAperta] = useState(false)
     const [messaggioSnack, setMessaggioSnack] = useState("")
     const [listaSequenze, setListaSequenze] = useState(["caricamento..."])
-    const [numeroInput, setNumeroInput] = useState(1)
-    const [listaMail, setListaMail] = useState([{chiave:0, testo:""}])
+    const [numeroInput, setNumeroInput] = useState(-1)
+    const [listaMail, setListaMail] = useState([{chiave:0, testo:"caricamento..."}])
+    const [avvisato, setAvvisato] = useState(false)
   
     const handleChange = (event) => {
       setSelezione(event.target.value)
+      setListaMail([{chiave:0, testo:"caricamento..."}])
+      setNumeroInput(-1)
     };
     const apriSnack = (messaggio) => {
       setSnackAperta(true)
@@ -89,7 +107,6 @@ function MaestriAtleti(props){
     }
 
     const aggiungiMail = (key, text) => {
-        console.log(listaMail)
         try{
           if(listaMail.map((v) => v.chiave).includes(key)){
             let cambio = listaMail;
@@ -105,7 +122,7 @@ function MaestriAtleti(props){
       }
 
     const salva = () => {
-        if (selezione == ""){
+        if (selezione === ""){
             apriSnack("Selezione una sequenza per salvare.")
             return
         }
@@ -123,6 +140,15 @@ function MaestriAtleti(props){
       }
 
     getSequenzeSalvate(listaSequenze, setListaSequenze)
+    getMail(listaMail, setListaMail, selezione)
+    if (numeroInput === -1 && listaMail[0].testo !== "caricamento..."){
+      setNumeroInput(listaMail.length)
+    }
+
+    if (listaSequenze.length === 1 && listaSequenze[0] === "" && !avvisato){
+      apriSnack("Prima di aggiungere atleti crea delle sequenze di azioni.")
+      setAvvisato(true)
+    }
   
     return (
       <>
@@ -150,22 +176,23 @@ function MaestriAtleti(props){
           </Select>
         </FormControl>
        </Grid>
-        <Grid item xs={12} alignItems="center" style={{marginTop: "40px"}}> 
+        {selezione !== "" ? <Grid item xs={12} alignItems="center" style={{marginTop: "40px"}} key={selezione}> 
             <Grid
                 container
                 direction="column"
                 justify="center"
                 alignItems="center"
-                key="nuova"
+                key={"nuova" + selezione}
             >
-            {Array(numeroInput).fill(1).map((x, y) => x + y - 1).map((chiave) =>
+            {Array((numeroInput !== -1 ? numeroInput : 1)).fill(1).map((x, y) => x + y - 1).map((chiave) =>
                 (
                 <Grid item xs={9} alignItems="center" key={"azione" + chiave.toString()}>
                     <TextField 
                     id={"mailAtleta" + chiave.toString()}
                     label="Email atleta" 
                     onChange={(e) => aggiungiMail(chiave, e.target.value)}
-                    key={"mailAtleta" + chiave.toString()}
+                    key={"mailAtleta" + chiave.toString() + listaMail[chiave].testo}
+                    defaultValue={listaMail[chiave].testo}
                     />
                 </Grid>
                 )
@@ -182,7 +209,7 @@ function MaestriAtleti(props){
                 <SaveIcon />
             </IconButton>
             </Grid>
-        </Grid>
+        </Grid> : undefined}
     </Grid>
     </>
     )
