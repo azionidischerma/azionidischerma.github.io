@@ -27,6 +27,7 @@ import 'firebaseui'
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 
 import MaestriAtleti from './maestriAtleti.js'
+import Atleta from './atleta.js'
 
 const firebaseConfig = {
   apiKey: "AIzaSyCe8mQ5RcM_tm7LPvM1kxbJ211Fq7G3fFA",
@@ -102,14 +103,20 @@ function Barra(props) {
     <AppBar position="fixed" color="primary" elevation={0}>
       <Toolbar>
         <Typography variant="h6" className={classes.title} onClick={() => props.setSchermataMaestro(false)}>
-          Scherma
+          Azioni di scherma
         </Typography>
         {props.schermataMaestro ? 
         <><Button style={{color:"white"}} onClick={() => props.setSchermataMaestro(false)}>Home</Button>
         <IconButton style={{color:"white"}} aria-label="logout" onClick={() => { firebase.auth().signOut() }}>
           <ExitToAppIcon />
         </IconButton></>:
-        <Button style={{color:"white"}} onClick={() => props.setSchermataMaestro(true)}>Maestro</Button>
+        (props.schermataAtleta ?
+          <><Button style={{color:"white"}} onClick={() => props.setSchermataAtleta(false)}>Home</Button>
+          <IconButton style={{color:"white"}} aria-label="logout" onClick={() => { firebase.auth().signOut() }}>
+            <ExitToAppIcon />
+          </IconButton></>:
+          <Button style={{color:"white"}} onClick={() => props.setSchermataMaestro(true)}>maestro</Button>
+        )
         }
       </Toolbar>
     </AppBar>
@@ -311,8 +318,6 @@ function VediSequenza(props){
   }
 
   const salva = () => {
-    console.log(listaMosse)
-    console.log(listaTempi)
     if(nomeSequenza === ""){
       props.apriSnack("Inserisci il nome della sequenza per salvare.")
       return
@@ -642,28 +647,32 @@ class CambiaMossa extends React.Component {
   }
 }
 
-function Mossa() {
-  const [mosse, setMosse] = useState(["caricamento..."]);
-  const db = firebase.firestore();
-  if (mosse[0] === "caricamento..."){
-    var mosseRef = db.collection("mosse");
-    mosseRef.doc("oueHRRQQ7wt6sV087Ynl").get()
-    .then(doc => {
-      if (!doc.exists) {
-        console.log('No such document!');
-      } else {
-        setMosse(doc.data().lista);
-      }
-    })
-    .catch(err => {
-      console.log('Error getting document', err);
-    });
+function Mossa(props) {
+  // const [mosse, setMosse] = useState(["caricamento..."]);
+  // const db = firebase.firestore();
+  // if (mosse[0] === "caricamento..."){
+  //   var mosseRef = db.collection("mosse");
+  //   mosseRef.doc("oueHRRQQ7wt6sV087Ynl").get()
+  //   .then(doc => {
+  //     if (!doc.exists) {
+  //       console.log('No such document!');
+  //     } else {
+  //       setMosse(doc.data().lista);
+  //     }
+  //   })
+  //   .catch(err => {
+  //     console.log('Error getting document', err);
+  //   });
 
-  }
+  // }
+  var mosse = ["Passo avanti", "Affondo", "Passo indietro"]
   return (
     <div className="App">
       <header className="App-header">
         <CambiaMossa mosse={mosse} />
+        <Button variant="contained" color="secondary"  onClick={() => props.setSchermataAtleta(true)}>
+          Login atleta
+        </Button>
       </header>
     </div>
     )
@@ -672,13 +681,20 @@ function Mossa() {
 
 function App(props) {
   const [schermataMaestro, setSchermataMaestro] = useState(false);
+  const [schermataAtleta, setSchermataAtleta] = useState(false);
   return (
     <div>
       <ThemeProvider theme={theme}>
-        <Barra schermataMaestro={schermataMaestro} setSchermataMaestro={setSchermataMaestro}/>
-          {schermataMaestro ? 
-          <Maestro/> :
-          <Mossa />}
+        <Barra 
+        schermataMaestro={schermataMaestro} 
+        setSchermataMaestro={setSchermataMaestro}
+        schermataAtleta={schermataAtleta} 
+        setSchermataAtleta={setSchermataAtleta}
+        />
+          {schermataMaestro ? <Maestro/> :
+          (schermataAtleta ? <Atleta /> : 
+          <Mossa schermataAtleta={schermataAtleta} setSchermataAtleta={setSchermataAtleta}/>
+          )}
       </ThemeProvider>
     </div>
   );

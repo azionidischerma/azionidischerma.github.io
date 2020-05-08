@@ -67,7 +67,7 @@ async function getSequenzeSalvate(listaSequenze, setListaSequenze) {
 }
 
 async function getMail(listaMail, setListaMail, nomeSequenza){
-  if (listaMail[0].testo !== "caricamento..." || nomeSequenza == ""){
+  if (listaMail[0].testo !== "caricamento..." || nomeSequenza === ""){
     return false
   }
   let sequenza = firebase.firestore().collection(firebase.auth().currentUser.uid).doc(nomeSequenza)
@@ -133,7 +133,7 @@ function MaestriAtleti(props){
         
         const db = firebase.firestore();
         var coll = db.collection(firebase.auth().currentUser.uid)
-        coll.doc(selezione).set(mailData, {merge: true});
+        coll.doc(selezione).collection("esercizi").doc().set(mailData, {merge: true});
         getSequenzeSalvate(props.listaSequenze, props.setListaSequenze)
         apriSnack("Salvato.")
         return
