@@ -3,12 +3,7 @@ import './App.css';
 
 // Material
 import { createMuiTheme, makeStyles, ThemeProvider, responsiveFontSizes } from '@material-ui/core/styles';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
-import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
@@ -20,14 +15,24 @@ import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Divider from '@material-ui/core/Divider';
+import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
 
 import * as firebase from "firebase/app";
 import '@firebase/firestore'
 import 'firebaseui'
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 
-import MaestriAtleti from './maestriAtleti.js'
-import Atleta from './atleta.js'
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  // Link
+} from "react-router-dom";
+
+import MaestriAtleti from './componenti/maestriAtleti.js'
+import Atleta from './componenti/atleta.js'
+import Barra from './componenti/barra.js'
 
 const firebaseConfig = {
   apiKey: "AIzaSyCe8mQ5RcM_tm7LPvM1kxbJ211Fq7G3fFA",
@@ -96,32 +101,6 @@ const useStyles = makeStyles((theme) => ({
     minWidth: 180,
   },
 }));
-
-function Barra(props) {
-  const classes = useStyles();
-  return (
-    <AppBar position="fixed" color="primary" elevation={0}>
-      <Toolbar>
-        <Typography variant="h6" className={classes.title} onClick={() => props.setSchermataMaestro(false)}>
-          Azioni di scherma
-        </Typography>
-        {props.schermataMaestro ? 
-        <><Button style={{color:"white"}} onClick={() => props.setSchermataMaestro(false)}>Home</Button>
-        <IconButton style={{color:"white"}} aria-label="logout" onClick={() => { firebase.auth().signOut() }}>
-          <ExitToAppIcon />
-        </IconButton></>:
-        (props.schermataAtleta ?
-          <><Button style={{color:"white"}} onClick={() => props.setSchermataAtleta(false)}>Home</Button>
-          <IconButton style={{color:"white"}} aria-label="logout" onClick={() => { firebase.auth().signOut() }}>
-            <ExitToAppIcon />
-          </IconButton></>:
-          <Button style={{color:"white"}} onClick={() => props.setSchermataMaestro(true)}>maestro</Button>
-        )
-        }
-      </Toolbar>
-    </AppBar>
-  )
-}
 
 function NuovaSnackBar(props){
   return <Snackbar
@@ -647,7 +626,7 @@ class CambiaMossa extends React.Component {
   }
 }
 
-function Mossa(props) {
+function Mossa() {
   // const [mosse, setMosse] = useState(["caricamento..."]);
   // const db = firebase.firestore();
   // if (mosse[0] === "caricamento..."){
@@ -670,7 +649,7 @@ function Mossa(props) {
     <div className="App">
       <header className="App-header">
         <CambiaMossa mosse={mosse} />
-        <Button variant="contained" color="secondary"  onClick={() => props.setSchermataAtleta(true)}>
+        <Button href="/atleta" variant="contained" color="secondary" >
           Login atleta
         </Button>
       </header>
@@ -679,24 +658,26 @@ function Mossa(props) {
  }
 
 
-function App(props) {
-  const [schermataMaestro, setSchermataMaestro] = useState(false);
-  const [schermataAtleta, setSchermataAtleta] = useState(false);
+function App() {
   return (
-    <div>
-      <ThemeProvider theme={theme}>
-        <Barra 
-        schermataMaestro={schermataMaestro} 
-        setSchermataMaestro={setSchermataMaestro}
-        schermataAtleta={schermataAtleta} 
-        setSchermataAtleta={setSchermataAtleta}
-        />
-          {schermataMaestro ? <Maestro/> :
-          (schermataAtleta ? <Atleta /> : 
-          <Mossa schermataAtleta={schermataAtleta} setSchermataAtleta={setSchermataAtleta}/>
-          )}
-      </ThemeProvider>
-    </div>
+    <ThemeProvider theme={theme}>
+      <Router>
+        <div>
+          <Barra />
+        </div>
+        <Switch>
+            <Route path="/maestro">
+              <Maestro/>
+            </Route>
+            <Route path="/atleta">
+              <Atleta />
+            </Route>
+            <Route exact path="/">
+              <Mossa />
+            </Route>
+          </Switch>
+      </Router>
+    </ThemeProvider>
   );
 }
 
